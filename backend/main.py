@@ -112,14 +112,41 @@ async def create_ics(
             # Build plain text description
             text_parts = []
             text_parts.append(agenda_data.get('title', 'Meeting Agenda'))
-            text_parts.append("=" * len(text_parts[0]))  # Underline with equals signs
+            text_parts.append("=" * len(text_parts[0]))
             text_parts.append("")
             
             if 'summary' in agenda_data:
                 text_parts.append(agenda_data['summary'])
                 text_parts.append("")
             
-            if 'items' in agenda_data:
+            # Handle Multi-day
+            if 'days' in agenda_data:
+                for i, day in enumerate(agenda_data['days']):
+                    text_parts.append(f"DAY {i+1} - {day.get('date', '')}")
+                    text_parts.append("-" * 40)
+                    
+                    for item in day.get('items', []):
+                        time_slot = item.get('time_slot', '')
+                        title = item.get('title', '')
+                        duration = item.get('duration', '')
+                        description = item.get('description', '')
+                        
+                        # Format each item
+                        if time_slot:
+                            header = f"{time_slot} - {title}"
+                            if duration:
+                                header += f" ({duration} mins)"
+                            text_parts.append(header)
+                        else:
+                            text_parts.append(f"* {title}")
+                            
+                        if description:
+                            text_parts.append(f"  {description}")
+                        text_parts.append("")
+                    text_parts.append("")
+            
+            # Handle Simple List or Single Day
+            elif 'items' in agenda_data:
                 text_parts.append("AGENDA ITEMS:")
                 text_parts.append("-" * 40)
                 text_parts.append("")
@@ -130,15 +157,23 @@ async def create_ics(
                     description = item.get('description', '')
                     
                     # Format each item
-                    text_parts.append(f"{time_slot} - {title} ({duration})")
+                    if time_slot:
+                        header = f"{time_slot} - {title}"
+                        if duration:
+                            header += f" ({duration} mins)"
+                        text_parts.append(header)
+                    else:
+                        text_parts.append(f"* {title}")
+                        
                     if description:
                         text_parts.append(f"  {description}")
                     text_parts.append("")
             
             plain_description = "\n".join(text_parts)
             event.add('description', plain_description)
-        except:
+        except Exception as e:
             # Fallback to plain text if JSON parsing fails
+            print(f"Error parsing agenda JSON: {e}")
             event.add('description', agenda_content)
         
         cal.add_component(event)

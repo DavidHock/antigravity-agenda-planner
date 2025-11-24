@@ -40,20 +40,44 @@ export class AgendaFormComponent {
   isLoading = false;
   generatedAgenda: string | null = null;
 
+  timeOptions: string[] = [];
+
   constructor(private fb: FormBuilder, private apiService: ApiService) {
+    this.generateTimeOptions();
+
     const now = new Date();
     const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+
+    // Calculate next 15 minute slot
+    const minutes = now.getMinutes();
+    const remainder = minutes % 15;
+    const addMinutes = 15 - remainder;
+    const nextSlot = new Date(now.getTime() + addMinutes * 60 * 1000);
+
+    // If next slot is tomorrow (e.g. it's 23:50), this handles it correctly for the time string
+    // but we might want to keep the date as today if possible, or move to tomorrow.
+    // For simplicity, we just use the time string of the rounded time.
 
     this.agendaForm = this.fb.group({
       topic: ['', Validators.required],
       location: ['', Validators.required],
       language: ['DE', Validators.required],
       startDate: [now, Validators.required],
-      startTime: [this.formatTime(now), Validators.required],
+      startTime: [this.formatTime(nextSlot), Validators.required],
       endDate: [now, Validators.required],
-      endTime: [this.formatTime(oneHourLater), Validators.required],
+      endTime: [this.formatTime(new Date(nextSlot.getTime() + 60 * 60 * 1000)), Validators.required],
       emailContent: ['']
     });
+  }
+
+  generateTimeOptions() {
+    for (let i = 0; i < 24; i++) {
+      for (let j = 0; j < 60; j += 15) {
+        const hour = i.toString().padStart(2, '0');
+        const minute = j.toString().padStart(2, '0');
+        this.timeOptions.push(`${hour}:${minute}`);
+      }
+    }
   }
 
   private formatTime(date: Date): string {

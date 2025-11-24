@@ -44,6 +44,63 @@ mat-card-subtitle {
     margin-top: 1rem;
 }
 
+.agenda-card {
+    margin-top: 20px;
+
+    .day-section {
+        margin-bottom: 30px;
+
+        .day-header {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+
+            h3 {
+                margin: 0;
+                color: #333;
+                font-size: 1.2em;
+            }
+        }
+
+        .day-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
+
+    .time-slot {
+        font-weight: bold;
+        margin-right: 10px;
+        color: #666;
+        min-width: 100px;
+        display: inline-block;
+    }
+
+    .item-title {
+        font-weight: 500;
+    }
+
+    .duration {
+        color: #888;
+        font-size: 0.9em;
+        margin-left: 5px;
+    }
+
+    .break-item {
+        background-color: #f9f9f9;
+        font-style: italic;
+    }
+
+    .raw-content {
+        white-space: pre-wrap;
+        font-family: monospace;
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 4px;
+    }
+}
+
 .agenda-item {
     height: auto !important;
     padding: 1rem 0;
@@ -77,9 +134,14 @@ mat-card-subtitle {
         font-size: 1.15rem;
         color: #2c3e50;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
+        /* Align top for wrapped text */
         gap: 0.6rem;
         margin-bottom: 0.35rem;
+        white-space: normal;
+        /* Force wrapping */
+        overflow: visible;
+        text-overflow: clip;
     }
 
     .emoji-icon {

@@ -37,7 +37,11 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Start Time</mat-label>
-            <input matInput type="time" formControlName="startTime">
+            <mat-select formControlName="startTime">
+              <mat-option *ngFor="let time of timeOptions" [value]="time">
+                {{time}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
 
@@ -52,7 +56,11 @@
 
           <mat-form-field appearance="outline">
             <mat-label>End Time</mat-label>
-            <input matInput type="time" formControlName="endTime">
+            <mat-select formControlName="endTime">
+              <mat-option *ngFor="let time of timeOptions" [value]="time">
+                {{time}}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
 

@@ -1,5 +1,8 @@
+
 from openai import OpenAI
-from typing import List, Optional
+from typing import Optional, List
+import json
+import re
 from .researcher import perform_research
 
 # Point to the local LM Studio instance
@@ -8,50 +11,100 @@ client = OpenAI(base_url="http://host.docker.internal:1234/v1", api_key="lm-stud
 from datetime import datetime
 
 async def generate_agenda_content(topic: str, start_time: str, end_time: str, language: str, email_content: str = None, file_contents: list = None) -> str:
-    # Calculate duration
-    start_dt = datetime.fromisoformat(start_time)
-    end_dt = datetime.fromisoformat(end_time)
-    duration_minutes = int((end_dt - start_dt).total_seconds() / 60)
+    """Generate agenda content for pre-calculated time slots."""
+    from services.time_slot_calculator import calculate_time_slots
+    
+    # Calculate deterministic time slots
+    schedule = calculate_time_slots(start_time, end_time)
     
     # Determine language instruction
     lang_instruction = "in German" if language == "DE" else "in English"
     
-    # Build the prompt with break rules
-    prompt = f"""Create a detailed meeting agenda {lang_instruction} for the following topic: {topic}
+    # Build prompt based on schedule type
+    if schedule["type"] == "simple":
+        # Short meeting: just bullet points, no times
+        prompt = f"""Create a simple meeting agenda {lang_instruction} for: {topic}
 
-Meeting Duration: {duration_minutes} minutes
-Start Time: {start_dt.strftime('%H:%M')}
-End Time: {end_dt.strftime('%H:%M')}
+Meeting Duration: {schedule['duration_minutes']} minutes
 
-IMPORTANT RULES FOR BREAKS:
-1. If the meeting is longer than 120 minutes, include a 30-minute coffee break every 90-120 minutes
-2. If the meeting spans the time between 12:00 PM and 1:00 PM, include a 60-minute lunch break during that time
-3. Label breaks clearly as "Coffee Break" or "Lunch Break"
+Generate {schedule['num_items']} agenda points as a simple list.
 
 """
+    else:
+        # Scheduled meeting: fill in content for pre-calculated slots
+        prompt = f"""Create a detailed meeting agenda {lang_instruction} for: {topic}
+
+The time slots have been pre-calculated. Your job is to fill in appropriate content for each slot.
+
+"""
+        # Add day-by-day schedule
+        for day_idx, day in enumerate(schedule["days"]):
+            if schedule["type"] == "multi_day":
+                prompt += f"\n**Day {day_idx + 1} ({day['date']}):**\n"
+            
+            for slot in day["slots"]:
+                if slot["type"] == "lunch_break":
+                    prompt += f"- {slot['start']} - {slot['end']}: Lunch Break (60 mins)\n"
+                elif slot["type"] == "coffee_break":
+                    prompt += f"- {slot['start']} - {slot['end']}: Coffee Break (30 mins)\n"
+                elif slot["type"] == "social":
+                    prompt += f"- {slot['start']}: Dinner / Social event\n"
+                else:
+                    prompt += f"- {slot['start']} - {slot['end']}: [FILL CONTENT] ({slot['duration_minutes']} mins)\n"
+            prompt += "\n"
     
     if email_content:
         prompt += f"\nEmail Context:\n{email_content}\n"
     
     if file_contents:
-    - Ensure the total time matches the duration.
-    - Return the result strictly as a valid JSON object.
-    - Do not include any markdown formatting (like ```json ... ```) or extra text.
+        prompt += "\nAttached Files Content:\n"
+        for content in file_contents:
+            prompt += f"{content}\n"
     
-    **JSON Schema:**
-    {{
-        "title": "Meeting Title",
-        "summary": "Brief summary of the meeting goal",
-        "items": [
-            {{
-                "time_slot": "09:00 - 09:10",
-                "title": "Introduction",
-                "description": "Welcome and context setting",
-                "duration": "10 mins"
-            }}
-        ]
-    }}
-    """
+    if schedule["type"] == "simple":
+        prompt += f"""
+Return a JSON object {lang_instruction} with this structure:
+{{
+    "title": "Meeting title {lang_instruction}",
+    "summary": "Brief summary {lang_instruction}",
+    "items": [
+        {{
+            "title": "Agenda point title {lang_instruction}",
+            "description": "Brief description {lang_instruction}"
+        }}
+    ]
+}}
+
+All text must be {lang_instruction}.
+"""
+    else:
+        prompt += f"""
+Fill in the [FILL CONTENT] slots with appropriate agenda items {lang_instruction}.
+
+Return a JSON object with this structure:
+{{
+    "title": "Meeting title {lang_instruction}",
+    "summary": "Brief summary {lang_instruction}",
+    "days": [
+        {{
+            "date": "YYYY-MM-DD",
+            "start_time": "HH:MM",
+            "end_time": "HH:MM",
+            "items": [
+                {{
+                    "time_slot": "HH:MM - HH:MM",
+                    "title": "Item title {lang_instruction}",
+                    "description": "Description {lang_instruction}",
+                    "duration": "X mins",
+                    "type": "work|lunch_break|coffee_break"
+                }}
+            ]
+        }}
+    ]
+}}
+
+All text must be {lang_instruction}. Keep the exact time slots provided above.
+"""
 
     try:
         completion = client.chat.completions.create(

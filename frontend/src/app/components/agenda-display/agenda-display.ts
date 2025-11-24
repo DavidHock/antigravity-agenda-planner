@@ -8,16 +8,25 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../services/api';
 
 interface AgendaItem {
-  time_slot: string;
+  time_slot?: string;
   title: string;
   description: string;
-  duration: string;
+  duration?: string;
+  type?: string;
+}
+
+interface AgendaDay {
+  date: string;
+  start_time: string;
+  end_time: string;
+  items: AgendaItem[];
 }
 
 interface AgendaData {
   title: string;
   summary: string;
-  items: AgendaItem[];
+  items?: AgendaItem[];
+  days?: AgendaDay[];
 }
 
 @Component({
@@ -54,14 +63,14 @@ export class AgendaDisplayComponent implements OnChanges {
 
   isBreakItem(title: string): boolean {
     const lowerTitle = title.toLowerCase();
-    return lowerTitle.includes('break') || lowerTitle.includes('lunch') || lowerTitle.includes('coffee');
+    return lowerTitle.includes('break') || lowerTitle.includes('lunch') || lowerTitle.includes('coffee') || lowerTitle.includes('pause');
   }
 
   getIconForTitle(title: string): string {
     const lower = title.toLowerCase();
     if (lower.includes('coffee')) return '☕';
     if (lower.includes('lunch')) return '🍱';
-    if (lower.includes('break')) return '🧘';
+    if (lower.includes('break') || lower.includes('pause')) return '🧘';
     if (lower.includes('intro')) return '👋';
     if (lower.includes('conclu') || lower.includes('wrap')) return '🏁';
     return '📅';
@@ -82,6 +91,28 @@ export class AgendaDisplayComponent implements OnChanges {
     });
 
     // Open URL directly - browser should trigger calendar app
+    window.open(`http://localhost:8086/create-ics?${params.toString()}`, '_blank');
+  }
+
+  downloadDayIcs(dayIndex: number) {
+    if (!this.parsedAgenda || !this.parsedAgenda.days) return;
+
+    const day = this.parsedAgenda.days[dayIndex];
+    // Create a temporary agenda object for this day
+    const dayAgenda = {
+      title: `${this.parsedAgenda.title} - Day ${dayIndex + 1}`,
+      summary: this.parsedAgenda.summary,
+      items: day.items
+    };
+
+    const params = new URLSearchParams({
+      topic: `${this.topic} (Day ${dayIndex + 1})`,
+      start_time: `${day.date}T${day.start_time}:00`,
+      end_time: `${day.date}T${day.end_time}:00`,
+      location: this.location,
+      agenda_content: JSON.stringify(dayAgenda)
+    });
+
     window.open(`http://localhost:8086/create-ics?${params.toString()}`, '_blank');
   }
 }

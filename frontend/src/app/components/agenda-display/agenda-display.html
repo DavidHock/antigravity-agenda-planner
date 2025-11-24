@@ -6,40 +6,64 @@
         </mat-card-title>
         <mat-card-subtitle *ngIf="parsedAgenda">{{ parsedAgenda.summary }}</mat-card-subtitle>
     </mat-card-header>
+    <mat-card class="agenda-card">
+        <mat-card-header>
+            <mat-card-title>{{ parsedAgenda?.title || 'Meeting Agenda' }}</mat-card-title>
+            <mat-card-subtitle *ngIf="parsedAgenda?.summary">{{ parsedAgenda?.summary }}</mat-card-subtitle>
+        </mat-card-header>
 
-    <mat-card-content>
-        <!-- Structured View -->
-        <div *ngIf="parsedAgenda" class="structured-agenda">
-            <mat-list>
-                <div *ngFor="let item of parsedAgenda.items; let last = last">
-                    <mat-list-item class="agenda-item" [class.break-item]="isBreakItem(item.title)">
-                        <div class="time-slot" matListItemAvatar [class.break-time]="isBreakItem(item.title)">
-                            <span class="time">{{ item.time_slot }}</span>
-                        </div>
-                        <div matListItemTitle class="item-title">
-                            <span class="emoji-icon">{{ getIconForTitle(item.title) }}</span>
-                            {{ item.title }}
-                            <span class="duration-badge">{{ item.duration }}</span>
-                        </div>
-                        <div matListItemLine class="item-desc">{{ item.description }}</div>
-                    </mat-list-item>
-                    <mat-divider *ngIf="!last"></mat-divider>
-                </div>
+        <mat-card-content>
+            <!-- Simple List (Short meetings) -->
+            <mat-list *ngIf="parsedAgenda?.items && !parsedAgenda?.days">
+                <mat-list-item *ngFor="let item of parsedAgenda?.items">
+                    <mat-icon matListItemIcon>fiber_manual_record</mat-icon>
+                    <div matListItemTitle>{{ item.title }}</div>
+                    <div matListItemLine *ngIf="item.description">{{ item.description }}</div>
+                </mat-list-item>
             </mat-list>
-        </div>
 
-        <!-- Fallback Raw View -->
-        <div *ngIf="!parsedAgenda" class="agenda-content">
-            {{ rawContent }}
-        </div>
-    </mat-card-content>
+            <!-- Multi-day / Scheduled -->
+            <div *ngIf="parsedAgenda?.days">
+                <div *ngFor="let day of parsedAgenda?.days; let i = index" class="day-section">
+                    <div class="day-header" *ngIf="parsedAgenda!.days!.length > 1">
+                        <h3>Day {{ i + 1 }} - {{ day.date }}</h3>
+                    </div>
 
-    <mat-card-actions align="end">
-        <button mat-stroked-button color="primary" (click)="downloadIcs()">
-            <mat-icon>event</mat-icon> Download ICS
-        </button>
-        <button mat-stroked-button color="primary" (click)="copyToClipboard()">
-            <mat-icon>content_copy</mat-icon> Copy to Clipboard
-        </button>
-    </mat-card-actions>
-</mat-card>
+                    <mat-list>
+                        <ng-container *ngFor="let item of day.items; let last = last">
+                            <mat-list-item [class.break-item]="isBreakItem(item.title)">
+                                <mat-icon matListItemIcon>{{ getIconForTitle(item.title) }}</mat-icon>
+                                <div matListItemTitle>
+                                    <span class="time-slot">{{ item.time_slot }}</span>
+                                    <span class="item-title">{{ item.title }}</span>
+                                    <span class="duration" *ngIf="item.duration">({{ item.duration }} mins)</span>
+                                </div>
+                                <div matListItemLine *ngIf="item.description">{{ item.description }}</div>
+                            </mat-list-item>
+                            <mat-divider *ngIf="!last"></mat-divider>
+                        </ng-container>
+                    </mat-list>
+
+                    <div class="day-actions" *ngIf="parsedAgenda!.days!.length > 1">
+                        <button mat-stroked-button color="primary" (click)="downloadDayIcs(i)">
+                            <mat-icon>event</mat-icon> Download Day {{ i + 1 }} ICS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raw Content Fallback -->
+            <div *ngIf="!parsedAgenda && rawContent" class="raw-content">
+                <pre>{{ rawContent }}</pre>
+            </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+            <button mat-stroked-button (click)="copyToClipboard()">
+                <mat-icon>content_copy</mat-icon> Copy to Clipboard
+            </button>
+            <button mat-stroked-button color="primary" (click)="downloadIcs()">
+                <mat-icon>event</mat-icon> Download All ICS
+            </button>
+        </mat-card-actions>
+    </mat-card>
