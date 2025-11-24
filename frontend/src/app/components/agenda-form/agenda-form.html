@@ -1,0 +1,56 @@
+<div class="container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>Agenda Planner</mat-card-title>
+      <mat-card-subtitle>Generate a structured meeting agenda with AI</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="agendaForm" (ngSubmit)="onSubmit()">
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Meeting Topic</mat-label>
+          <input matInput formControlName="topic" placeholder="e.g. Q4 Marketing Strategy">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Duration</mat-label>
+          <input matInput formControlName="duration" placeholder="e.g. 60 minutes">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email Context / Notes</mat-label>
+          <textarea matInput formControlName="emailContent" rows="5" placeholder="Paste relevant emails or notes here..."></textarea>
+        </mat-form-field>
+
+        <div class="file-upload-section">
+          <button type="button" mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>attach_file</mat-icon> Attach Files
+          </button>
+          <input #fileInput type="file" (change)="onFileSelected($event)" multiple style="display: none;">
+          
+          <div class="file-list" *ngIf="selectedFiles.length > 0">
+            <div *ngFor="let file of selectedFiles; let i = index" class="file-item">
+              <span>{{ file.name }}</span>
+              <button mat-icon-button color="warn" (click)="removeFile(i)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="agendaForm.invalid || isLoading">
+            <span *ngIf="!isLoading">Generate Agenda</span>
+            <span *ngIf="isLoading">Generating...</span>
+          </button>
+        </div>
+
+        <mat-progress-bar mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <app-agenda-display *ngIf="generatedAgenda" [agendaContent]="generatedAgenda"></app-agenda-display>
+</div>
