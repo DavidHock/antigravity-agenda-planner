@@ -72,41 +72,16 @@ export class AgendaDisplayComponent implements OnChanges {
   }
 
   downloadIcs() {
-    // Use an iframe to submit the form without navigating away
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.name = 'download_iframe';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'http://localhost:8086/create-ics';
-    form.target = 'download_iframe';
-
-    // Add form fields
-    const fields = {
+    // Build URL with query parameters
+    const params = new URLSearchParams({
       topic: this.topic,
       start_time: this.startTime,
       end_time: this.endTime,
       location: this.location,
       agenda_content: this.agendaContent
-    };
+    });
 
-    for (const [key, value] of Object.entries(fields)) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    // Cleanup after a delay
-    setTimeout(() => {
-      document.body.removeChild(form);
-      document.body.removeChild(iframe);
-    }, 1000);
+    // Open URL directly - browser should trigger calendar app
+    window.open(`http://localhost:8086/create-ics?${params.toString()}`, '_blank');
   }
 }

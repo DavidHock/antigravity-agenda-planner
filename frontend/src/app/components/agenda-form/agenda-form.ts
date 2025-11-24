@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { ApiService } from '../../services/api';
 import { AgendaDisplayComponent } from '../agenda-display/agenda-display';
 
@@ -27,6 +28,7 @@ import { AgendaDisplayComponent } from '../agenda-display/agenda-display';
     MatProgressBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatSelectModule,
     AgendaDisplayComponent
   ],
   templateUrl: './agenda-form.html',
@@ -45,6 +47,7 @@ export class AgendaFormComponent {
     this.agendaForm = this.fb.group({
       topic: ['', Validators.required],
       location: ['', Validators.required],
+      language: ['DE', Validators.required],
       startDate: [now, Validators.required],
       startTime: [this.formatTime(now), Validators.required],
       endDate: [now, Validators.required],
@@ -84,6 +87,7 @@ export class AgendaFormComponent {
         formValue.topic,
         this.toLocalISOString(startDateTime),
         this.toLocalISOString(endDateTime),
+        formValue.language,
         formValue.emailContent,
         this.selectedFiles
       ).subscribe({

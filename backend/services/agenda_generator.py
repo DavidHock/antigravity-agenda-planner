@@ -7,56 +7,33 @@ client = OpenAI(base_url="http://host.docker.internal:1234/v1", api_key="lm-stud
 
 from datetime import datetime
 
-async def generate_agenda_content(topic: str, start_time: str, end_time: str, email_content: Optional[str], file_contents: List[str]) -> str:
-    
+async def generate_agenda_content(topic: str, start_time: str, end_time: str, language: str, email_content: str = None, file_contents: list = None) -> str:
     # Calculate duration
-    try:
-        # Handle both Z-suffixed (UTC) and local ISO strings
-        start_clean = start_time.replace('Z', '')
-        end_clean = end_time.replace('Z', '')
-        start_dt = datetime.fromisoformat(start_clean)
-        end_dt = datetime.fromisoformat(end_clean)
-        duration_minutes = (end_dt - start_dt).total_seconds() / 60
-        duration_str = f"{int(duration_minutes)} minutes"
-    except Exception as e:
-        duration_str = "Unknown duration"
-        start_dt = None
-        end_dt = None
+    start_dt = datetime.fromisoformat(start_time)
+    end_dt = datetime.fromisoformat(end_time)
+    duration_minutes = int((end_dt - start_dt).total_seconds() / 60)
+    
+    # Determine language instruction
+    lang_instruction = "in German" if language == "DE" else "in English"
+    
+    # Build the prompt with break rules
+    prompt = f"""Create a detailed meeting agenda {lang_instruction} for the following topic: {topic}
 
-    # 1. Identify research needs
-    research_query = f"Best practices for meeting agenda: {topic}"
-    research_results = perform_research(research_query)
+Meeting Duration: {duration_minutes} minutes
+Start Time: {start_dt.strftime('%H:%M')}
+End Time: {end_dt.strftime('%H:%M')}
 
-    # 2. Construct the prompt
-    context_str = ""
+IMPORTANT RULES FOR BREAKS:
+1. If the meeting is longer than 120 minutes, include a 30-minute coffee break every 90-120 minutes
+2. If the meeting spans the time between 12:00 PM and 1:00 PM, include a 60-minute lunch break during that time
+3. Label breaks clearly as "Coffee Break" or "Lunch Break"
+
+"""
+    
     if email_content:
-        context_str += f"\n\nEmail Context:\n{email_content}"
+        prompt += f"\nEmail Context:\n{email_content}\n"
     
     if file_contents:
-        context_str += "\n\nFile Contents:\n" + "\n---\n".join(file_contents)
-
-    prompt = f"""
-    You are an expert meeting facilitator. Create a detailed agenda for a meeting.
-    
-    **Meeting Details:**
-    - Topic: {topic}
-    - Start Time: {start_time}
-    - End Time: {end_time}
-    - Total Duration: {duration_str}
-    
-    **Context & Materials:**
-    {context_str}
-    
-    **Research Insights:**
-    {research_results}
-    
-    **Strict Scheduling Rules:**
-    1. **Coffee Breaks**: If the meeting is longer than 120 minutes, insert a 30-minute coffee break every 90-120 minutes.
-    2. **Lunch Break**: If the meeting time spans across the 12:00 - 13:00 (1:00 PM) window, you MUST insert a 60-minute Lunch Break around that time.
-    3. **Time Slots**: Ensure all items have specific start and end times that fit within {start_time} to {end_time}.
-    
-    **Instructions:**
-    - Create a structured agenda.
     - Ensure the total time matches the duration.
     - Return the result strictly as a valid JSON object.
     - Do not include any markdown formatting (like ```json ... ```) or extra text.

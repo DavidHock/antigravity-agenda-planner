@@ -10,11 +10,12 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  generateAgenda(topic: string, startTime: string, endTime: string, emailContent: string, files: File[]): Observable<any> {
+  generateAgenda(topic: string, startTime: string, endTime: string, language: string, emailContent: string, files: File[]): Observable<any> {
     const formData = new FormData();
     formData.append('topic', topic);
     formData.append('start_time', startTime);
     formData.append('end_time', endTime);
+    formData.append('language', language);
     if (emailContent) {
       formData.append('email_content', emailContent);
     }

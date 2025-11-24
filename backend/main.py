@@ -32,6 +32,7 @@ async def generate_agenda(
     topic: str = Form(...),
     start_time: str = Form(...),
     end_time: str = Form(...),
+    language: str = Form("DE"),
     email_content: Optional[str] = Form(None),
     files: List[UploadFile] = File(None)
 ):
@@ -45,10 +46,21 @@ async def generate_agenda(
                 except UnicodeDecodeError:
                     file_contents.append(f"[Binary file: {file.filename}]")
 
-        agenda = await generate_agenda_content(topic, start_time, end_time, email_content, file_contents)
+        agenda = await generate_agenda_content(topic, start_time, end_time, language, email_content, file_contents)
         return {"agenda": agenda}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/create-ics")
+async def create_ics_get(
+    topic: str,
+    start_time: str,
+    end_time: str,
+    location: str,
+    agenda_content: str
+):
+    # Call the POST version with the same logic
+    return await create_ics(topic, start_time, end_time, location, agenda_content)
 
 @app.post("/create-ics")
 async def create_ics(
@@ -137,9 +149,9 @@ async def create_ics(
         
         return Response(
             content=cal.to_ical(),
-            media_type="application/octet-stream",
+            media_type="text/calendar",
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Disposition": f'inline; filename="{filename}"',
                 "Cache-Control": "no-cache"
             }
         )

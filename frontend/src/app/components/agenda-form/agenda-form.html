@@ -18,6 +18,14 @@
           <input matInput formControlName="location" placeholder="e.g. Conference Room A or Zoom Link">
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Language</mat-label>
+          <mat-select formControlName="language">
+            <mat-option value="DE">German (DE)</mat-option>
+            <mat-option value="EN">English (EN)</mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <div class="datetime-row">
           <!-- Start Date/Time -->
           <mat-form-field appearance="outline">
