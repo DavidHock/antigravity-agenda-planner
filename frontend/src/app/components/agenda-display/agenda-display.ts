@@ -78,7 +78,63 @@ export class AgendaDisplayComponent implements OnChanges {
   }
 
   copyToClipboard() {
-    navigator.clipboard.writeText(this.agendaContent);
+    if (!this.parsedAgenda) {
+      navigator.clipboard.writeText(this.agendaContent);
+      return;
+    }
+
+    const textParts: string[] = [];
+    textParts.push((this.parsedAgenda.title || 'Meeting Agenda').toUpperCase());
+    textParts.push('='.repeat(textParts[0].length));
+    textParts.push('');
+
+    if (this.parsedAgenda.summary) {
+      textParts.push(this.parsedAgenda.summary);
+      textParts.push('');
+    }
+
+    const processItems = (items: AgendaItem[]) => {
+      items.forEach(item => {
+        const icon = this.getIconForTitle(item.title);
+        const formattedTitle = `${icon} ${item.title.toUpperCase()}`;
+
+        if (item.time_slot) {
+          let header = `${item.time_slot} - ${formattedTitle}`;
+          if (item.duration) {
+            const cleanDuration = item.duration.replace(' mins', '').replace(' min', '');
+            header += ` (${cleanDuration} min)`;
+          }
+          textParts.push(header);
+        } else {
+          textParts.push(`* ${formattedTitle}`);
+        }
+
+        if (item.description) {
+          let shortDesc = item.description.split('.')[0] + '.';
+          if (shortDesc.length > 100) {
+            shortDesc = shortDesc.substring(0, 97) + '...';
+          }
+          textParts.push(`  ${shortDesc}`);
+        }
+        textParts.push('');
+      });
+    };
+
+    if (this.parsedAgenda.days) {
+      this.parsedAgenda.days.forEach((day, index) => {
+        textParts.push(`DAY ${index + 1} - ${day.date}`);
+        textParts.push('-'.repeat(40));
+        processItems(day.items);
+        textParts.push('');
+      });
+    } else if (this.parsedAgenda.items) {
+      textParts.push('AGENDA ITEMS:');
+      textParts.push('-'.repeat(40));
+      textParts.push('');
+      processItems(this.parsedAgenda.items);
+    }
+
+    navigator.clipboard.writeText(textParts.join('\n'));
   }
 
   downloadIcs() {
