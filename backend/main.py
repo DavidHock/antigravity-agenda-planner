@@ -12,8 +12,8 @@ app = FastAPI(title="Agenda Planner API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4206"],
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for now
+    allow_credentials=False,  # Must be False when allow_origins is ["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -91,20 +91,55 @@ async def create_ics(
         event.add('dtend', end_dt)
         event.add('dtstamp', datetime.now())
         event.add('location', vText(location))
-        event.add('description', agenda_content)
+        
+        # Format agenda content as plain text with simple formatting
+        try:
+            import json
+            agenda_data = json.loads(agenda_content)
+            
+            # Build plain text description
+            text_parts = []
+            text_parts.append(agenda_data.get('title', 'Meeting Agenda'))
+            text_parts.append("=" * len(text_parts[0]))  # Underline with equals signs
+            text_parts.append("")
+            
+            if 'summary' in agenda_data:
+                text_parts.append(agenda_data['summary'])
+                text_parts.append("")
+            
+            if 'items' in agenda_data:
+                text_parts.append("AGENDA ITEMS:")
+                text_parts.append("-" * 40)
+                text_parts.append("")
+                for item in agenda_data['items']:
+                    time_slot = item.get('time_slot', '')
+                    title = item.get('title', '')
+                    duration = item.get('duration', '')
+                    description = item.get('description', '')
+                    
+                    # Format each item
+                    text_parts.append(f"{time_slot} - {title} ({duration})")
+                    if description:
+                        text_parts.append(f"  {description}")
+                    text_parts.append("")
+            
+            plain_description = "\n".join(text_parts)
+            event.add('description', plain_description)
+        except:
+            # Fallback to plain text if JSON parsing fails
+            event.add('description', agenda_content)
         
         cal.add_component(event)
 
-        # Use RFC 6266 encoding for filename
+        # Use both filename and filename* for maximum compatibility
         from urllib.parse import quote
         encoded_filename = quote(filename)
         
         return Response(
             content=cal.to_ical(),
-            media_type="text/calendar;charset=utf-8",
+            media_type="application/octet-stream",
             headers={
-                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
-                "Content-Type": "text/calendar;charset=utf-8",
+                "Content-Disposition": f'attachment; filename="{filename}"',
                 "Cache-Control": "no-cache"
             }
         )

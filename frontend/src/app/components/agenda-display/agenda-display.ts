@@ -72,12 +72,16 @@ export class AgendaDisplayComponent implements OnChanges {
   }
 
   downloadIcs() {
-    // Create a form and submit it to download the file directly from the backend
-    // This is the only reliable way to get the correct filename in Chrome
+    // Use an iframe to submit the form without navigating away
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.name = 'download_iframe';
+    document.body.appendChild(iframe);
+
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'http://localhost:8086/create-ics';
-    form.target = '_blank';
+    form.target = 'download_iframe';
 
     // Add form fields
     const fields = {
@@ -98,6 +102,11 @@ export class AgendaDisplayComponent implements OnChanges {
 
     document.body.appendChild(form);
     form.submit();
-    document.body.removeChild(form);
+
+    // Cleanup after a delay
+    setTimeout(() => {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+    }, 1000);
   }
 }
