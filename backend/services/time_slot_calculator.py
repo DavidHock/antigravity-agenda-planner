@@ -53,6 +53,17 @@ def calculate_single_day_slots(start_dt: datetime, end_dt: datetime, total_minut
     
     slots = apply_standard_schedule(start_dt, end_dt)
     
+    # Add Dinner / Social event if the meeting goes until at least 17:30
+    # User request: "generell nirgendwo" (interpreted as generally everywhere appropriate)
+    if end_dt.hour >= 17 and end_dt.minute >= 30:
+        slots.append({
+            "start": "19:00",
+            "end": "",
+            "duration_minutes": 0,
+            "title": "Dinner / Social event",
+            "type": "social"
+        })
+    
     return {
         "type": "scheduled",
         "duration_minutes": total_minutes,

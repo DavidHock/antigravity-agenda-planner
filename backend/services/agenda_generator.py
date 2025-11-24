@@ -96,7 +96,7 @@ Return a JSON object with this structure:
                     "title": "Item title {lang_instruction}",
                     "description": "Description {lang_instruction}",
                     "duration": "X mins",
-                    "type": "work|lunch_break|coffee_break"
+                    "type": "work|lunch_break|coffee_break|social"
                 }}
             ]
         }}

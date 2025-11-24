@@ -63,14 +63,14 @@ export class AgendaDisplayComponent implements OnChanges {
 
   isBreakItem(title: string): boolean {
     const lowerTitle = title.toLowerCase();
-    return lowerTitle.includes('break') || lowerTitle.includes('lunch') || lowerTitle.includes('coffee') || lowerTitle.includes('pause') || lowerTitle.includes('dinner') || lowerTitle.includes('social');
+    return lowerTitle.includes('break') || lowerTitle.includes('lunch') || lowerTitle.includes('coffee') || lowerTitle.includes('pause') || lowerTitle.includes('dinner') || lowerTitle.includes('social') || lowerTitle.includes('abendessen') || lowerTitle.includes('sozial');
   }
 
   getIconForTitle(title: string): string {
     const lower = title.toLowerCase();
     if (lower.includes('coffee') || lower.includes('kaffee')) return '☕';
     if (lower.includes('lunch') || lower.includes('mittag')) return '🍽️';
-    if (lower.includes('dinner') || lower.includes('social')) return '🍻';
+    if (lower.includes('dinner') || lower.includes('social') || lower.includes('abendessen') || lower.includes('sozial')) return '🍻';
     if (lower.includes('break') || lower.includes('pause')) return '🧘';
     if (lower.includes('intro')) return '👋';
     if (lower.includes('conclu') || lower.includes('wrap')) return '🏁';
