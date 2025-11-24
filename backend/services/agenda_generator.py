@@ -3,7 +3,7 @@ from typing import List, Optional
 from .researcher import perform_research
 
 # Point to the local LM Studio instance
-client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+client = OpenAI(base_url="http://host.docker.internal:1234/v1", api_key="lm-studio")
 
 async def generate_agenda_content(topic: str, duration: str, email_content: Optional[str], file_contents: List[str]) -> str:
     
@@ -33,21 +33,51 @@ async def generate_agenda_content(topic: str, duration: str, email_content: Opti
     {research_results}
     
     **Instructions:**
-    - Create a structured agenda with time slots.
+    - Create a structured agenda.
     - Ensure the total time matches the duration.
-    - Include specific discussion points based on the context.
-    - Format the output in clean Markdown.
+    - Return the result strictly as a valid JSON object.
+    - Do not include any markdown formatting (like ```json ... ```) or extra text.
+    
+    **JSON Schema:**
+    {{
+        "title": "Meeting Title",
+        "summary": "Brief summary of the meeting goal",
+        "items": [
+            {{
+                "time_slot": "09:00 - 09:10",
+                "title": "Introduction",
+                "description": "Welcome and context setting",
+                "duration": "10 mins"
+            }}
+        ]
+    }}
     """
 
     try:
         completion = client.chat.completions.create(
-            model="local-model", # The model name is often ignored by LM Studio, but good to have
+            model="local-model",
             messages=[
-                {"role": "system", "content": "You are a helpful professional assistant."},
+                {"role": "system", "content": "You are a helpful professional assistant that outputs strict JSON."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
         )
-        return completion.choices[0].message.content
+        content = completion.choices[0].message.content.strip()
+        
+        # Clean up potential markdown code blocks if the model ignores instructions
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+            
+        return content.strip()
     except Exception as e:
-        return f"Error generating agenda: {str(e)}. Ensure LM Studio is running on port 1234."
+        # Fallback JSON error
+        import json
+        return json.dumps({
+            "title": "Error Generating Agenda",
+            "summary": f"Could not generate structured agenda. Error: {str(e)}",
+            "items": []
+        })

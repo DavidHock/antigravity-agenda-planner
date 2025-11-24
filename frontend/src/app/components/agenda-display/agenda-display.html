@@ -1,14 +1,39 @@
 <mat-card class="result-card">
     <mat-card-header>
-        <mat-card-title>Generated Agenda</mat-card-title>
+        <mat-card-title>
+            <span *ngIf="parsedAgenda">{{ parsedAgenda.title }}</span>
+            <span *ngIf="!parsedAgenda">Generated Agenda</span>
+        </mat-card-title>
+        <mat-card-subtitle *ngIf="parsedAgenda">{{ parsedAgenda.summary }}</mat-card-subtitle>
         <div class="spacer"></div>
         <button mat-icon-button (click)="copyToClipboard()" title="Copy to clipboard">
             <mat-icon>content_copy</mat-icon>
         </button>
     </mat-card-header>
+
     <mat-card-content>
-        <div class="agenda-content">
-            {{ agendaContent }}
+        <!-- Structured View -->
+        <div *ngIf="parsedAgenda" class="structured-agenda">
+            <mat-list>
+                <div *ngFor="let item of parsedAgenda.items; let last = last">
+                    <mat-list-item class="agenda-item">
+                        <div class="time-slot" matListItemAvatar>
+                            <span class="time">{{ item.time_slot }}</span>
+                        </div>
+                        <div matListItemTitle class="item-title">
+                            {{ item.title }}
+                            <span class="duration-badge">{{ item.duration }}</span>
+                        </div>
+                        <div matListItemLine class="item-desc">{{ item.description }}</div>
+                    </mat-list-item>
+                    <mat-divider *ngIf="!last"></mat-divider>
+                </div>
+            </mat-list>
+        </div>
+
+        <!-- Fallback Raw View -->
+        <div *ngIf="!parsedAgenda" class="agenda-content">
+            {{ rawContent }}
         </div>
     </mat-card-content>
 </mat-card>
