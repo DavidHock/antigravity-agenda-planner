@@ -7,39 +7,38 @@
         <mat-card-subtitle *ngIf="parsedAgenda">{{ parsedAgenda.summary }}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-        <!-- Simple List (Short meetings) -->
-        <mat-list *ngIf="parsedAgenda?.items && !parsedAgenda?.days">
-            <mat-list-item *ngFor="let item of parsedAgenda?.items">
-                <mat-icon matListItemIcon>fiber_manual_record</mat-icon>
-                <div matListItemTitle>{{ item.title }}</div>
-                <div matListItemLine *ngIf="item.description">{{ item.description }}</div>
-            </mat-list-item>
-        </mat-list>
+        <!-- Single Day / Simple List -->
+        <div *ngIf="parsedAgenda?.items && !parsedAgenda?.days" class="day-section">
+            <mat-form-field appearance="outline" class="full-width-textarea">
+                <mat-label>Agenda Description</mat-label>
+                <textarea matInput [(ngModel)]="dayEditableContent[0]" rows="15"></textarea>
+            </mat-form-field>
 
-        <!-- Multi-day / Scheduled -->
+            <div class="day-actions">
+                <button mat-stroked-button color="accent" (click)="refineDay(0)">
+                    <mat-icon>auto_fix_high</mat-icon> Refine with AI
+                </button>
+            </div>
+        </div>
+
+        <!-- Multi-day -->
         <div *ngIf="parsedAgenda?.days">
             <div *ngFor="let day of parsedAgenda?.days; let i = index" class="day-section">
                 <div class="day-header" *ngIf="parsedAgenda!.days!.length > 1">
                     <h3>Day {{ i + 1 }} - {{ day.date }}</h3>
                 </div>
 
-                <mat-list>
-                    <ng-container *ngFor="let item of day.items; let last = last">
-                        <mat-list-item [class.break-item]="isBreakItem(item.title)">
-                            <mat-icon matListItemIcon>{{ getIconForTitle(item.title) }}</mat-icon>
-                            <div matListItemTitle>
-                                <span class="time-slot">{{ item.time_slot }}</span>
-                                <span class="item-title">{{ item.title }}</span>
-                                <span class="duration" *ngIf="item.duration">({{ item.duration }})</span>
-                            </div>
-                            <div matListItemLine *ngIf="item.description">{{ item.description }}</div>
-                        </mat-list-item>
-                        <mat-divider *ngIf="!last"></mat-divider>
-                    </ng-container>
-                </mat-list>
+                <mat-form-field appearance="outline" class="full-width-textarea">
+                    <mat-label>Day {{ i + 1 }} Description</mat-label>
+                    <textarea matInput [(ngModel)]="dayEditableContent[i]" rows="15"></textarea>
+                </mat-form-field>
 
-                <div class="day-actions" *ngIf="parsedAgenda!.days!.length > 1">
-                    <button mat-stroked-button color="primary" (click)="downloadDayIcs(i)">
+                <div class="day-actions">
+                    <button mat-stroked-button color="accent" (click)="refineDay(i)">
+                        <mat-icon>auto_fix_high</mat-icon> Refine
+                    </button>
+                    <button mat-stroked-button color="primary" (click)="downloadDayIcs(i)"
+                        *ngIf="parsedAgenda!.days!.length > 1">
                         <mat-icon>event</mat-icon> Download Day {{ i + 1 }} ICS
                     </button>
                 </div>

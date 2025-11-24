@@ -51,6 +51,18 @@ async def generate_agenda(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/refine-text")
+async def refine_text(
+    text: str = Form(...),
+    instruction: Optional[str] = Form(None)
+):
+    try:
+        from services.agenda_generator import refine_agenda_text
+        refined_text = await refine_agenda_text(text, instruction)
+        return {"refined_text": refined_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/create-ics")
 async def create_ics_get(
     topic: str,

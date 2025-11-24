@@ -127,10 +127,39 @@ All text must be {lang_instruction}. Keep the exact time slots provided above.
             
         return content.strip()
     except Exception as e:
-        # Fallback JSON error
-        import json
         return json.dumps({
             "title": "Error Generating Agenda",
             "summary": f"Could not generate structured agenda. Error: {str(e)}",
             "items": []
         })
+
+async def refine_agenda_text(text: str, instruction: Optional[str] = None) -> str:
+    """Refine agenda text using LLM."""
+    
+    prompt = f"""Refine the following meeting agenda text.
+    
+    Current Text:
+    {text}
+    
+    Instructions:
+    - Improve clarity, tone, and conciseness.
+    - Fix any typos or grammatical errors.
+    - Maintain the existing structure (Time - Title (Duration)).
+    - Keep the emojis if they are appropriate.
+    - {instruction if instruction else "Make it sound professional and engaging."}
+    
+    Return ONLY the refined text, no explanations.
+    """
+
+    try:
+        completion = client.chat.completions.create(
+            model="local-model",
+            messages=[
+                {"role": "system", "content": "You are a helpful professional assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+        )
+        return completion.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error refining text: {str(e)}"

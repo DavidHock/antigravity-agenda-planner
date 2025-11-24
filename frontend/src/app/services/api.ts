@@ -19,12 +19,21 @@ export class ApiService {
     if (emailContent) {
       formData.append('email_content', emailContent);
     }
+    if (files) {
+      files.forEach((file) => {
+        formData.append('files', file, file.name);
+      });
+    }
+    return this.http.post(`${this.apiUrl}/generate-agenda`, formData);
+  }
 
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-
-    return this.http.post<any>(`${this.apiUrl}/generate-agenda`, formData);
+  refineText(text: string, instruction?: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('text', text);
+    if (instruction) {
+      formData.append('instruction', instruction);
+    }
+    return this.http.post(`${this.apiUrl}/refine-text`, formData);
   }
 
   createIcs(topic: string, startTime: string, endTime: string, location: string, agendaContent: string): Observable<Blob> {

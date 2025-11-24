@@ -197,3 +197,21 @@ mat-divider {
     border-top-color: #edf2f7;
     margin: 0.5rem 0;
 }
+
+.full-width-textarea {
+    width: 100%;
+    margin-bottom: 10px;
+
+    textarea {
+        font-family: 'Inter', 'Roboto', sans-serif;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+}
+
+.day-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
