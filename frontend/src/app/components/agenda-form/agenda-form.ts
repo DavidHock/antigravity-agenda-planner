@@ -44,6 +44,7 @@ export class AgendaFormComponent {
 
     this.agendaForm = this.fb.group({
       topic: ['', Validators.required],
+      location: ['', Validators.required],
       startDate: [now, Validators.required],
       startTime: [this.formatTime(now), Validators.required],
       endDate: [now, Validators.required],
@@ -98,7 +99,7 @@ export class AgendaFormComponent {
     }
   }
 
-  private combineDateAndTime(date: Date, time: string): Date {
+  public combineDateAndTime(date: Date, time: string): Date {
     const [hours, minutes] = time.split(':').map(Number);
     const newDate = new Date(date);
     newDate.setHours(hours);
@@ -108,7 +109,7 @@ export class AgendaFormComponent {
     return newDate;
   }
 
-  private toLocalISOString(date: Date): string {
+  public toLocalISOString(date: Date): string {
     const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
     const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, -1);
     return localISOTime;

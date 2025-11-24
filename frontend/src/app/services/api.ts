@@ -25,4 +25,15 @@ export class ApiService {
 
     return this.http.post<any>(`${this.apiUrl}/generate-agenda`, formData);
   }
+
+  createIcs(topic: string, startTime: string, endTime: string, location: string, agendaContent: string): Observable<Blob> {
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('start_time', startTime);
+    formData.append('end_time', endTime);
+    formData.append('location', location);
+    formData.append('agenda_content', agendaContent);
+
+    return this.http.post(`${this.apiUrl}/create-ics`, formData, { responseType: 'blob' });
+  }
 }

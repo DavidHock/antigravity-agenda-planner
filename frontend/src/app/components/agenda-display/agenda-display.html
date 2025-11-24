@@ -5,10 +5,6 @@
             <span *ngIf="!parsedAgenda">Generated Agenda</span>
         </mat-card-title>
         <mat-card-subtitle *ngIf="parsedAgenda">{{ parsedAgenda.summary }}</mat-card-subtitle>
-        <div class="spacer"></div>
-        <button mat-icon-button (click)="copyToClipboard()" title="Copy to clipboard">
-            <mat-icon>content_copy</mat-icon>
-        </button>
     </mat-card-header>
 
     <mat-card-content>
@@ -37,4 +33,13 @@
             {{ rawContent }}
         </div>
     </mat-card-content>
+
+    <mat-card-actions align="end">
+        <button mat-stroked-button color="primary" (click)="downloadIcs()">
+            <mat-icon>event</mat-icon> Download ICS
+        </button>
+        <button mat-stroked-button color="primary" (click)="copyToClipboard()">
+            <mat-icon>content_copy</mat-icon> Copy to Clipboard
+        </button>
+    </mat-card-actions>
 </mat-card>

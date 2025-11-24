@@ -1,7 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import List, Optional
 from services.agenda_generator import generate_agenda_content
+from icalendar import Calendar, Event, vText
+from datetime import datetime
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,6 +47,67 @@ async def generate_agenda(
 
         agenda = await generate_agenda_content(topic, start_time, end_time, email_content, file_contents)
         return {"agenda": agenda}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/create-ics")
+async def create_ics(
+    topic: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    location: str = Form(...),
+    agenda_content: str = Form(...)
+):
+    try:
+        # Parse times to create filename
+        try:
+            start_dt = datetime.fromisoformat(start_time.replace('Z', ''))
+            year = start_dt.year
+            month = str(start_dt.month).zfill(2)
+            day = str(start_dt.day).zfill(2)
+            hours = str(start_dt.hour).zfill(2)
+            minutes = str(start_dt.minute).zfill(2)
+            
+            # Sanitize topic for filename
+            import re
+            sanitized_topic = re.sub(r'[^a-zA-Z0-9\s]', '', topic).strip()
+            sanitized_topic = re.sub(r'\s+', ' ', sanitized_topic)[:50]
+            
+            filename = f"{year}-{month}-{day} {hours}-{minutes} {sanitized_topic}.ics"
+        except:
+            filename = "meeting_agenda.ics"
+        
+        cal = Calendar()
+        cal.add('prodid', '-//Agenda Planner//mxm.dk//')
+        cal.add('version', '2.0')
+
+        event = Event()
+        event.add('summary', topic)
+        
+        # Parse times (assuming local ISO strings from frontend)
+        end_dt = datetime.fromisoformat(end_time.replace('Z', ''))
+        
+        event.add('dtstart', start_dt)
+        event.add('dtend', end_dt)
+        event.add('dtstamp', datetime.now())
+        event.add('location', vText(location))
+        event.add('description', agenda_content)
+        
+        cal.add_component(event)
+
+        # Use RFC 6266 encoding for filename
+        from urllib.parse import quote
+        encoded_filename = quote(filename)
+        
+        return Response(
+            content=cal.to_ical(),
+            media_type="text/calendar;charset=utf-8",
+            headers={
+                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
+                "Content-Type": "text/calendar;charset=utf-8",
+                "Cache-Control": "no-cache"
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -13,6 +13,11 @@
           <input matInput formControlName="topic" placeholder="e.g. Q4 Marketing Strategy">
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Location / Link</mat-label>
+          <input matInput formControlName="location" placeholder="e.g. Conference Room A or Zoom Link">
+        </mat-form-field>
+
         <div class="datetime-row">
           <!-- Start Date/Time -->
           <mat-form-field appearance="outline">
@@ -78,5 +83,8 @@
     </mat-card-content>
   </mat-card>
 
-  <app-agenda-display *ngIf="generatedAgenda" [agendaContent]="generatedAgenda"></app-agenda-display>
+  <app-agenda-display *ngIf="generatedAgenda" [agendaContent]="generatedAgenda" [topic]="agendaForm.get('topic')?.value"
+    [location]="agendaForm.get('location')?.value"
+    [startTime]="toLocalISOString(combineDateAndTime(agendaForm.get('startDate')?.value, agendaForm.get('startTime')?.value))"
+    [endTime]="toLocalISOString(combineDateAndTime(agendaForm.get('endDate')?.value, agendaForm.get('endTime')?.value))"></app-agenda-display>
 </div>

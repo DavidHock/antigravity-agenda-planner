@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
+import { ApiService } from '../../services/api';
 
 interface AgendaItem {
   time_slot: string;
@@ -28,8 +29,15 @@ interface AgendaData {
 })
 export class AgendaDisplayComponent implements OnChanges {
   @Input() agendaContent: string = '';
+  @Input() topic: string = '';
+  @Input() location: string = '';
+  @Input() startTime: string = '';
+  @Input() endTime: string = '';
+
   parsedAgenda: AgendaData | null = null;
   rawContent: string = '';
+
+  constructor(private apiService: ApiService) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['agendaContent'] && this.agendaContent) {
@@ -61,5 +69,35 @@ export class AgendaDisplayComponent implements OnChanges {
 
   copyToClipboard() {
     navigator.clipboard.writeText(this.agendaContent);
+  }
+
+  downloadIcs() {
+    // Create a form and submit it to download the file directly from the backend
+    // This is the only reliable way to get the correct filename in Chrome
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'http://localhost:8086/create-ics';
+    form.target = '_blank';
+
+    // Add form fields
+    const fields = {
+      topic: this.topic,
+      start_time: this.startTime,
+      end_time: this.endTime,
+      location: this.location,
+      agenda_content: this.agendaContent
+    };
+
+    for (const [key, value] of Object.entries(fields)) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   }
 }
