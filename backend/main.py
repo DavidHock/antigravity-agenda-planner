@@ -109,9 +109,20 @@ async def create_ics(
             import json
             agenda_data = json.loads(agenda_content)
             
+            # Helper for emojis (duplicate of frontend logic for consistency)
+            def get_icon(title):
+                lower = title.lower()
+                if 'coffee' in lower or 'kaffee' in lower: return '☕'
+                if 'lunch' in lower or 'mittag' in lower: return '🍽️'
+                if 'dinner' in lower or 'social' in lower or 'abendessen' in lower or 'sozial' in lower: return '🍻'
+                if 'break' in lower or 'pause' in lower: return '🧘'
+                if 'intro' in lower: return '👋'
+                if 'conclu' in lower or 'wrap' in lower: return '🏁'
+                return '📅'
+
             # Build plain text description
             text_parts = []
-            text_parts.append(agenda_data.get('title', 'Meeting Agenda'))
+            text_parts.append(agenda_data.get('title', 'Meeting Agenda').upper())
             text_parts.append("=" * len(text_parts[0]))
             text_parts.append("")
             
@@ -132,16 +143,25 @@ async def create_ics(
                         description = item.get('description', '')
                         
                         # Format each item
+                        icon = get_icon(title)
+                        formatted_title = f"{icon} {title.upper()}"
+                        
                         if time_slot:
-                            header = f"{time_slot} - {title}"
+                            header = f"{time_slot} - {formatted_title}"
                             if duration:
-                                header += f" ({duration} mins)"
+                                # Remove redundant 'mins' if present in duration string
+                                clean_duration = duration.replace(' mins', '').replace(' min', '')
+                                header += f" ({clean_duration} min)"
                             text_parts.append(header)
                         else:
-                            text_parts.append(f"* {title}")
+                            text_parts.append(f"* {formatted_title}")
                             
                         if description:
-                            text_parts.append(f"  {description}")
+                            # Keep description very short (max 100 chars or first sentence)
+                            short_desc = description.split('.')[0] + "."
+                            if len(short_desc) > 100:
+                                short_desc = short_desc[:97] + "..."
+                            text_parts.append(f"  {short_desc}")
                         text_parts.append("")
                     text_parts.append("")
             
@@ -157,16 +177,23 @@ async def create_ics(
                     description = item.get('description', '')
                     
                     # Format each item
+                    icon = get_icon(title)
+                    formatted_title = f"{icon} {title.upper()}"
+                    
                     if time_slot:
-                        header = f"{time_slot} - {title}"
+                        header = f"{time_slot} - {formatted_title}"
                         if duration:
-                            header += f" ({duration} mins)"
+                            clean_duration = duration.replace(' mins', '').replace(' min', '')
+                            header += f" ({clean_duration} min)"
                         text_parts.append(header)
                     else:
-                        text_parts.append(f"* {title}")
+                        text_parts.append(f"* {formatted_title}")
                         
                     if description:
-                        text_parts.append(f"  {description}")
+                        short_desc = description.split('.')[0] + "."
+                        if len(short_desc) > 100:
+                            short_desc = short_desc[:97] + "..."
+                        text_parts.append(f"  {short_desc}")
                     text_parts.append("")
             
             plain_description = "\n".join(text_parts)

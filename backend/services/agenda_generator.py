@@ -94,7 +94,7 @@ Return a JSON object with this structure:
                 {{
                     "time_slot": "HH:MM - HH:MM",
                     "title": "Item title {lang_instruction}",
-                    "description": "Description {lang_instruction}",
+                    "description": "Very short description (max 1 sentence) {lang_instruction}",
                     "duration": "X mins",
                     "type": "work|lunch_break|coffee_break|social"
                 }}
