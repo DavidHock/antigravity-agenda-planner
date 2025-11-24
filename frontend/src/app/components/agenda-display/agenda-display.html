@@ -16,11 +16,12 @@
         <div *ngIf="parsedAgenda" class="structured-agenda">
             <mat-list>
                 <div *ngFor="let item of parsedAgenda.items; let last = last">
-                    <mat-list-item class="agenda-item">
-                        <div class="time-slot" matListItemAvatar>
+                    <mat-list-item class="agenda-item" [class.break-item]="isBreakItem(item.title)">
+                        <div class="time-slot" matListItemAvatar [class.break-time]="isBreakItem(item.title)">
                             <span class="time">{{ item.time_slot }}</span>
                         </div>
                         <div matListItemTitle class="item-title">
+                            <span class="emoji-icon">{{ getIconForTitle(item.title) }}</span>
                             {{ item.title }}
                             <span class="duration-badge">{{ item.duration }}</span>
                         </div>

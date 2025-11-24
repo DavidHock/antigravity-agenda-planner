@@ -10,20 +10,19 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  generateAgenda(topic: string, duration: string, emailContent: string, files: File[]): Observable<any> {
+  generateAgenda(topic: string, startTime: string, endTime: string, emailContent: string, files: File[]): Observable<any> {
     const formData = new FormData();
     formData.append('topic', topic);
-    formData.append('duration', duration);
+    formData.append('start_time', startTime);
+    formData.append('end_time', endTime);
     if (emailContent) {
       formData.append('email_content', emailContent);
     }
 
-    if (files && files.length > 0) {
-      for (let file of files) {
-        formData.append('files', file);
-      }
-    }
+    files.forEach(file => {
+      formData.append('files', file);
+    });
 
-    return this.http.post(`${this.apiUrl}/generate-agenda`, formData);
+    return this.http.post<any>(`${this.apiUrl}/generate-agenda`, formData);
   }
 }

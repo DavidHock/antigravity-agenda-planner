@@ -1,26 +1,52 @@
 <div class="container">
   <mat-card class="form-card">
     <mat-card-header>
-      <mat-card-title>Agenda Planner</mat-card-title>
+      <mat-card-title>✨ Agenda Planner</mat-card-title>
       <mat-card-subtitle>Generate a structured meeting agenda with AI</mat-card-subtitle>
     </mat-card-header>
-    
+
     <mat-card-content>
       <form [formGroup]="agendaForm" (ngSubmit)="onSubmit()">
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Meeting Topic</mat-label>
           <input matInput formControlName="topic" placeholder="e.g. Q4 Marketing Strategy">
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Duration</mat-label>
-          <input matInput formControlName="duration" placeholder="e.g. 60 minutes">
-        </mat-form-field>
+        <div class="datetime-row">
+          <!-- Start Date/Time -->
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Start Time</mat-label>
+            <input matInput type="time" formControlName="startTime">
+          </mat-form-field>
+        </div>
+
+        <div class="datetime-row">
+          <!-- End Date/Time -->
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End Time</mat-label>
+            <input matInput type="time" formControlName="endTime">
+          </mat-form-field>
+        </div>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email Context / Notes</mat-label>
-          <textarea matInput formControlName="emailContent" rows="5" placeholder="Paste relevant emails or notes here..."></textarea>
+          <textarea matInput formControlName="emailContent" rows="5"
+            placeholder="Paste relevant emails or notes here..."></textarea>
         </mat-form-field>
 
         <div class="file-upload-section">
@@ -28,7 +54,7 @@
             <mat-icon>attach_file</mat-icon> Attach Files
           </button>
           <input #fileInput type="file" (change)="onFileSelected($event)" multiple style="display: none;">
-          
+
           <div class="file-list" *ngIf="selectedFiles.length > 0">
             <div *ngFor="let file of selectedFiles; let i = index" class="file-item">
               <span>{{ file.name }}</span>

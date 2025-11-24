@@ -44,6 +44,21 @@ export class AgendaDisplayComponent implements OnChanges {
     }
   }
 
+  isBreakItem(title: string): boolean {
+    const lowerTitle = title.toLowerCase();
+    return lowerTitle.includes('break') || lowerTitle.includes('lunch') || lowerTitle.includes('coffee');
+  }
+
+  getIconForTitle(title: string): string {
+    const lower = title.toLowerCase();
+    if (lower.includes('coffee')) return '☕';
+    if (lower.includes('lunch')) return '🍱';
+    if (lower.includes('break')) return '🧘';
+    if (lower.includes('intro')) return '👋';
+    if (lower.includes('conclu') || lower.includes('wrap')) return '🏁';
+    return '📅';
+  }
+
   copyToClipboard() {
     navigator.clipboard.writeText(this.agendaContent);
   }

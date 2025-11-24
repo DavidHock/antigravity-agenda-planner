@@ -27,24 +27,22 @@ async def health_check():
 @app.post("/generate-agenda")
 async def generate_agenda(
     topic: str = Form(...),
-    duration: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
     email_content: Optional[str] = Form(None),
     files: List[UploadFile] = File(None)
 ):
     try:
-        # Process files if any
         file_contents = []
         if files:
             for file in files:
                 content = await file.read()
-                # Simple decoding for text-based files, might need more robust handling for PDFs/Docs
                 try:
-                    text_content = content.decode("utf-8")
-                    file_contents.append(f"File: {file.filename}\nContent:\n{text_content}")
+                    file_contents.append(content.decode("utf-8"))
                 except UnicodeDecodeError:
-                    file_contents.append(f"File: {file.filename} (Binary content not fully supported yet)")
+                    file_contents.append(f"[Binary file: {file.filename}]")
 
-        agenda = await generate_agenda_content(topic, duration, email_content, file_contents)
+        agenda = await generate_agenda_content(topic, start_time, end_time, email_content, file_contents)
         return {"agenda": agenda}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
