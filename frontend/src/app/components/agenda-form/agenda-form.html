@@ -101,6 +101,7 @@
 
   <app-agenda-display *ngIf="generatedAgenda" [agendaContent]="generatedAgenda" [topic]="agendaForm.get('topic')?.value"
     [location]="agendaForm.get('location')?.value"
+    [language]="agendaForm.get('language')?.value"
     [startTime]="toLocalISOString(combineDateAndTime(agendaForm.get('startDate')?.value, agendaForm.get('startTime')?.value))"
     [endTime]="toLocalISOString(combineDateAndTime(agendaForm.get('endDate')?.value, agendaForm.get('endTime')?.value))"></app-agenda-display>
 </div>

@@ -6,13 +6,15 @@ import { ApiService } from '../../services/api';
 
 describe('AgendaDisplayComponent', () => {
   let component: AgendaDisplayComponent;
+  let apiServiceMock: { createIcs: ReturnType<typeof vi.fn>; refineText: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    const apiServiceMock = {
-      createIcs: vi.fn().mockReturnValue(of(new Blob()))
-    } as unknown as ApiService;
+    apiServiceMock = {
+      createIcs: vi.fn().mockReturnValue(of(new Blob())),
+      refineText: vi.fn().mockReturnValue(of({ refined_text: 'updated' }))
+    };
 
-    component = new AgendaDisplayComponent(apiServiceMock);
+    component = new AgendaDisplayComponent(apiServiceMock as unknown as ApiService);
   });
 
   it('initializes editable content for single day agendas', () => {
@@ -38,5 +40,17 @@ describe('AgendaDisplayComponent', () => {
   it('uses dinner emoji for social events', () => {
     const icon = component.getIconForTitle('Dinner and Drinks');
     expect(icon).toBe('🍻');
+  });
+
+  it('passes the correct language instruction to the refine endpoint', () => {
+    component.language = 'EN';
+    component.dayEditableContent = ['Original'];
+
+    component.refineDay(0);
+
+    expect(apiServiceMock.refineText).toHaveBeenCalledWith(
+      'Original',
+      'Ensure the entire text stays in English.'
+    );
   });
 });

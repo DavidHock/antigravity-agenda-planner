@@ -45,6 +45,7 @@ export class AgendaDisplayComponent implements OnChanges {
   @Input() location: string = '';
   @Input() startTime: string = '';
   @Input() endTime: string = '';
+  @Input() language: string = 'DE';
 
   parsedAgenda: AgendaData | null = null;
   rawContent: string = '';
@@ -259,8 +260,9 @@ export class AgendaDisplayComponent implements OnChanges {
     const currentText = this.dayEditableContent[index];
     if (!currentText) return;
 
-    // Show loading state if possible (skipping for now to keep it simple)
-    this.apiService.refineText(currentText).subscribe({
+    const instruction = this.getLanguageInstruction();
+
+    this.apiService.refineText(currentText, instruction).subscribe({
       next: (response) => {
         if (response.refined_text) {
           this.dayEditableContent[index] = response.refined_text;
@@ -271,5 +273,12 @@ export class AgendaDisplayComponent implements OnChanges {
         alert('Failed to refine text. Please try again.');
       }
     });
+  }
+
+  private getLanguageInstruction(): string {
+    if (this.language === 'DE') {
+      return 'Bitte formuliere den gesamten Text vollständig auf Deutsch.';
+    }
+    return 'Ensure the entire text stays in English.';
   }
 }

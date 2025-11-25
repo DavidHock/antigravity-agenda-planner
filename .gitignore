@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Node / Angular
+node_modules/
+dist/
+
+# Environment / virtualenv
+backend/venv/
+
+# OS
+.DS_Store
+
+
