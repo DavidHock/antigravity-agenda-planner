@@ -48,6 +48,8 @@ python3 cli/agenda_cli.py ics --topic "Dev Sync" --location "Room A" \
 ```
 
 Set `AGENDA_API_BASE` to target another backend host if needed.
+If you omit required flags while running in an interactive terminal, the CLI will
+prompt you for the missing values.
 
 ### CI/CD Guard Rails
 `ci.yml` defines three jobs:

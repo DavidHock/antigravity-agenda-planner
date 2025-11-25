@@ -119,3 +119,57 @@ def test_generate_supports_attachments(tmp_path):
     assert exit_code == 0
     assert "multipart/form-data" in captured_headers.get("content_type", "")
 
+
+@responses.activate
+def test_generate_prompts_for_missing_topic(monkeypatch):
+    api_base = "http://mock-api"
+    responses.post(
+        f"{api_base}/generate-agenda",
+        json={"agenda": "{}"},
+        status=200,
+    )
+
+    inputs = iter(["Prompted Topic", "2025-02-01T11:00:00"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+
+    exit_code = agenda_cli.main([
+        "--api-base", api_base,
+        "generate",
+        "--start", "2025-02-01T10:00:00",
+        "--language", "EN",
+    ])
+
+    assert exit_code == 0
+
+
+@responses.activate
+def test_ics_prompts_for_agenda_content(monkeypatch, tmp_path):
+    api_base = "http://mock-api"
+    responses.post(
+        f"{api_base}/create-ics",
+        body=b"ICS",
+        status=200,
+    )
+
+    inputs = iter([
+        "Prompted Topic",
+        "Room A",
+        "2025-03-01T09:00:00",
+        "2025-03-01T10:00:00",
+        '{"title": "Prompted"}',
+    ])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+
+    output_file = tmp_path / "meeting.ics"
+
+    exit_code = agenda_cli.main([
+        "--api-base", api_base,
+        "ics",
+        "--output", str(output_file),
+    ])
+
+    assert exit_code == 0
+    assert output_file.read_bytes() == b"ICS"
+
