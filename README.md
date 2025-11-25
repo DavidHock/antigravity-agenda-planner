@@ -22,8 +22,10 @@ AI-assisted meeting agenda planner with a FastAPI backend and Angular 17 fronten
    ```
 
 ### Tests
-- **Backend**: `PYTHONPATH=backend python3 -m pytest backend/tests`
-- **Frontend**: `npm run test -- --watch=false`
+- **Backend**: `PYTHONPATH=backend python3 -m pytest backend/tests`  
+  Covers deterministic slot generation for short/long/multi-day events, including dinner scheduling edge cases.
+- **Frontend**: `npm run test -- --watch=false`  
+  Exercises agenda generation, refine/copy/download buttons, and API interactions.
 
 ### CI/CD Guard Rails
 `ci.yml` defines three jobs:

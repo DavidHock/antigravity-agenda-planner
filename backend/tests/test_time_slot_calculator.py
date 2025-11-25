@@ -39,6 +39,29 @@ def test_single_day_meeting_generates_standard_slots():
     assert any(slot["type"] == "social" for slot in day["slots"])
 
 
+def test_single_day_meeting_skips_dinner_when_ending_early():
+    """Single-day sessions ending before 17:30 should not add the dinner slot."""
+    schedule = calculate_time_slots(
+        "2024-05-01T09:00:00",
+        "2024-05-01T16:00:00",
+    )
+
+    day = schedule["days"][0]
+    assert schedule["type"] == "scheduled"
+    assert not any(slot["type"] == "social" for slot in day["slots"])
+
+
+def test_single_day_meeting_adds_dinner_for_late_sessions():
+    """Single-day sessions ending late should include the social dinner."""
+    schedule = calculate_time_slots(
+        "2024-05-01T09:00:00",
+        "2024-05-01T19:30:00",
+    )
+
+    day = schedule["days"][0]
+    assert any(slot["type"] == "social" for slot in day["slots"])
+
+
 def test_multi_day_schedule_skips_dinner_on_short_final_day():
     """Dinner should be skipped on the last day if the meeting ends early."""
     schedule = calculate_time_slots(
