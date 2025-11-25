@@ -26,6 +26,8 @@ AI-assisted meeting agenda planner with a FastAPI backend and Angular 17 fronten
   Covers deterministic slot generation for short/long/multi-day events, including dinner scheduling edge cases.
 - **Frontend**: `npm run test -- --watch=false`  
   Exercises agenda generation, refine/copy/download buttons, and API interactions.
+- **CLI**: `PYTHONPATH=. python3 -m pytest tests/cli`  
+  Validates the console helper for generate/refine/ICS workflows.
 
 ### Console Helper
 A lightweight CLI is available in `cli/agenda_cli.py` and reuses the running backend API (defaults to `http://localhost:8086`).

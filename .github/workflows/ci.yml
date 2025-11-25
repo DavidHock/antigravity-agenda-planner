@@ -30,6 +30,15 @@ jobs:
           cd backend
           pytest
 
+      - name: Run backend scenario tests
+        run: |
+          cd backend
+          pytest tests/test_time_slot_calculator.py
+
+      - name: Run CLI tests
+        run: |
+          PYTHONPATH=. pytest tests/cli
+
   frontend:
     name: Frontend Tests & Build
     runs-on: ubuntu-latest
