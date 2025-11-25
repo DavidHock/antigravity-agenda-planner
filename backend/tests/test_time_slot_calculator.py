@@ -39,8 +39,8 @@ def test_single_day_meeting_generates_standard_slots():
     assert any(slot["type"] == "social" for slot in day["slots"])
 
 
-def test_multi_day_schedule_adds_social_events_every_day():
-    """Multi-day meetings should create per-day slots and evening events."""
+def test_multi_day_schedule_skips_dinner_on_short_final_day():
+    """Dinner should be skipped on the last day if the meeting ends early."""
     schedule = calculate_time_slots(
         "2024-05-01T09:00:00",
         "2024-05-03T15:00:00",
@@ -49,8 +49,24 @@ def test_multi_day_schedule_adds_social_events_every_day():
     assert schedule["type"] == "multi_day"
     assert len(schedule["days"]) == 3
 
-    for day in schedule["days"]:
+    # First two days should still receive the dinner slot
+    for day in schedule["days"][:-1]:
         assert any(slot["type"] == "social" for slot in day["slots"])
+
+    # Final day ends mid-afternoon, so the dinner slot should be absent
+    assert not any(slot["type"] == "social" for slot in schedule["days"][-1]["slots"])
+
+
+def test_multi_day_schedule_keeps_dinner_when_final_day_runs_late():
+    """If the final day goes into the evening, dinner should remain."""
+    schedule = calculate_time_slots(
+        "2024-05-01T09:00:00",
+        "2024-05-03T20:00:00",
+    )
+
+    assert schedule["type"] == "multi_day"
+    assert len(schedule["days"]) == 3
+    assert any(slot["type"] == "social" for slot in schedule["days"][-1]["slots"])
 
 
 def test_times_are_rounded_to_quarter_hours():

@@ -95,16 +95,22 @@ def calculate_multi_day_slots(start_dt: datetime, end_dt: datetime) -> Dict[str,
         
         # Apply standard schedule
         day_slots = apply_standard_schedule(day_start, day_end)
-        
-        # Add Dinner / Social event at 19:00 for ALL days in multi-day schedule
-        # User request: "bitte noch das Dinner dazu um 19:00"
-        day_slots.append({
-            "start": "19:00",
-            "end": "",
-            "duration_minutes": 0,
-            "title": "Dinner / Social event",
-            "type": "social"
-        })
+
+        include_dinner = True
+        if current_date == end_date:
+            # Only add dinner on the final day if the meeting actually
+            # runs late enough to justify an evening event.
+            if day_end.hour < 18 or (day_end.hour == 18 and day_end.minute == 0):
+                include_dinner = False
+
+        if include_dinner:
+            day_slots.append({
+                "start": "19:00",
+                "end": "",
+                "duration_minutes": 0,
+                "title": "Dinner / Social event",
+                "type": "social"
+            })
         
         days.append({
             "date": current_date.isoformat(),
