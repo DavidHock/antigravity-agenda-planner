@@ -27,6 +27,26 @@ AI-assisted meeting agenda planner with a FastAPI backend and Angular 17 fronten
 - **Frontend**: `npm run test -- --watch=false`  
   Exercises agenda generation, refine/copy/download buttons, and API interactions.
 
+### Console Helper
+A lightweight CLI is available in `cli/agenda_cli.py` and reuses the running backend API (defaults to `http://localhost:8086`).
+
+```bash
+python3 cli/agenda_cli.py generate \
+  --topic "Dev <> Research Exchange" \
+  --location "HQ Berlin" \
+  --start "2025-01-15T09:00:00" \
+  --end "2025-01-15T10:00:00" \
+  --language EN \
+  --email "Align priorities for Q1"
+
+python3 cli/agenda_cli.py refine --text-file agenda.txt --language EN
+python3 cli/agenda_cli.py ics --topic "Dev Sync" --location "Room A" \
+  --start "2025-01-15T09:00:00" --end "2025-01-15T10:00:00" \
+  --agenda-json agenda.json --output dev_sync.ics
+```
+
+Set `AGENDA_API_BASE` to target another backend host if needed.
+
 ### CI/CD Guard Rails
 `ci.yml` defines three jobs:
 1. **Backend Tests** – installs Python deps and runs `pytest`.
