@@ -1,23 +1,42 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { describe, beforeEach, expect, it, vi } from 'vitest';
 
-import { AgendaDisplay } from './agenda-display';
+import { AgendaDisplayComponent } from './agenda-display';
+import { ApiService } from '../../services/api';
 
-describe('AgendaDisplay', () => {
-  let component: AgendaDisplay;
-  let fixture: ComponentFixture<AgendaDisplay>;
+describe('AgendaDisplayComponent', () => {
+  let component: AgendaDisplayComponent;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AgendaDisplay]
-    })
-    .compileComponents();
+  beforeEach(() => {
+    const apiServiceMock = {
+      createIcs: vi.fn().mockReturnValue(of(new Blob()))
+    } as unknown as ApiService;
 
-    fixture = TestBed.createComponent(AgendaDisplay);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+    component = new AgendaDisplayComponent(apiServiceMock);
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('initializes editable content for single day agendas', () => {
+    component.parsedAgenda = {
+      title: 'Test',
+      summary: 'Summary',
+      items: [
+        {
+          title: 'Coffee Break',
+          description: 'Grab a drink',
+          time_slot: '10:00 - 10:15',
+          duration: '15 mins'
+        }
+      ]
+    };
+
+    component.initializeEditableContent();
+
+    expect(component.dayEditableContent.length).toBe(1);
+    expect(component.dayEditableContent[0]).toContain('☕ COFFEE BREAK');
+  });
+
+  it('uses dinner emoji for social events', () => {
+    const icon = component.getIconForTitle('Dinner and Drinks');
+    expect(icon).toBe('🍻');
   });
 });

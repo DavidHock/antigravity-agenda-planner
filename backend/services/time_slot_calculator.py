@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List, Dict, Any
 
 def round_to_15_minutes(dt: datetime) -> datetime:
@@ -86,12 +86,12 @@ def calculate_multi_day_slots(start_dt: datetime, end_dt: datetime) -> Dict[str,
         if current_date == start_dt.date():
             day_start = start_dt
         else:
-            day_start = datetime.combine(current_date, datetime.min.time()).replace(hour=8, minute=30)
+            day_start = datetime.combine(current_date, time(8, 30))
         
         if current_date == end_date:
             day_end = end_dt
         else:
-            day_end = datetime.combine(current_date, datetime.min.time()).replace(hour=17, minute=30)
+            day_end = datetime.combine(current_date, time(17, 30))
         
         # Apply standard schedule
         day_slots = apply_standard_schedule(day_start, day_end)

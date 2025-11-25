@@ -3,7 +3,6 @@ from openai import OpenAI
 from typing import Optional, List
 import json
 import re
-from .researcher import perform_research
 
 # Point to the local LM Studio instance
 client = OpenAI(base_url="http://host.docker.internal:1234/v1", api_key="lm-studio")

@@ -191,51 +191,33 @@ export class AgendaDisplayComponent implements OnChanges {
   }
 
   downloadIcs() {
-    // Build URL with query parameters
-    const params = new URLSearchParams({
-      topic: this.topic,
-      start_time: this.startTime,
-      end_time: this.endTime,
-      location: this.location,
-      agenda_content: this.agendaContent // Keep original for now, or we need to reconstruct the JSON from text which is hard. 
-      // Actually, for "Download All", we might want to keep the JSON structure but update descriptions? 
-      // The user asked: "download ics buttons should include the edits of the description".
-      // Since we are moving to text boxes, maybe we should just send the text content if possible?
-      // But the backend expects JSON for structure. 
-      // Let's stick to the per-day download for the edited text feature as requested "next to each download button".
-      // For "Download All", it's tricky if we have multiple text blocks.
-      // Let's assume the user primarily wants the per-day text edits.
-      // Wait, the user said "instead of showing a layouted webview directly show the ICS style description text... Allow editing these boxes and the download ics buttons should include the edits".
-      // This implies the "Download All" should also include edits. 
-      // Reconstructing JSON from text is error prone.
-      // However, the backend `create_ics` endpoint falls back to raw text if JSON parsing fails.
-      // So for single day, we can send the text.
-      // For multi-day, we can't easily send multiple text blocks as one "agenda_content" string unless we concatenate them.
-      // Let's try to update the JSON object with the new text? No, parsing text back to JSON items is hard.
-      // Let's construct a "Plain Text" agenda for the backend to use directly.
-    });
-
-    // For now, let's implement the per-day download correctly first, as that maps 1:1 to the text box.
-    // We will update this method to use the edited content if it's a single day.
-
+    // Use edited content if available, otherwise use original
     let contentToSend = this.agendaContent;
     if (this.dayEditableContent.length === 1) {
       contentToSend = this.dayEditableContent[0];
     } else if (this.dayEditableContent.length > 1) {
-      // Concatenate all days
+      // Concatenate all days for multi-day agendas
       contentToSend = this.dayEditableContent.join('\n\n' + '='.repeat(20) + '\n\n');
     }
 
-    const params2 = new URLSearchParams({
-      topic: this.topic,
-      start_time: this.startTime,
-      end_time: this.endTime,
-      location: this.location,
-      agenda_content: contentToSend
-    });
-
-    // Open URL directly - browser should trigger calendar app
-    window.open(`http://localhost:8086/create-ics?${params2.toString()}`, '_blank');
+    // Use API service to download ICS file
+    this.apiService.createIcs(this.topic, this.startTime, this.endTime, this.location, contentToSend)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${this.topic.replace(/[^a-z0-9]/gi, '_')}.ics`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        },
+        error: (err) => {
+          console.error('Error downloading ICS:', err);
+          alert('Failed to download ICS file. Please try again.');
+        }
+      });
   }
 
   downloadDayIcs(dayIndex: number) {
@@ -244,15 +226,33 @@ export class AgendaDisplayComponent implements OnChanges {
     const day = this.parsedAgenda.days[dayIndex];
     const editedText = this.dayEditableContent[dayIndex];
 
-    const params = new URLSearchParams({
-      topic: `${this.topic} (Day ${dayIndex + 1})`,
-      start_time: `${day.date}T${day.start_time}:00`,
-      end_time: `${day.date}T${day.end_time}:00`,
-      location: this.location,
-      agenda_content: editedText // Send the edited text directly
-    });
+    // Construct ISO datetime strings
+    const startDateTime = `${day.date}T${day.start_time}:00`;
+    const endDateTime = `${day.date}T${day.end_time}:00`;
 
-    window.open(`http://localhost:8086/create-ics?${params.toString()}`, '_blank');
+    // Use API service to download ICS file
+    this.apiService.createIcs(
+      `${this.topic} (Day ${dayIndex + 1})`,
+      startDateTime,
+      endDateTime,
+      this.location,
+      editedText
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${this.topic.replace(/[^a-z0-9]/gi, '_')}_Day${dayIndex + 1}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      },
+      error: (err) => {
+        console.error('Error downloading ICS:', err);
+        alert('Failed to download ICS file. Please try again.');
+      }
+    });
   }
 
   refineDay(index: number) {

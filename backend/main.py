@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel
 from typing import List, Optional
 from services.agenda_generator import generate_agenda_content
 from icalendar import Calendar, Event, vText
@@ -17,11 +16,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-class AgendaRequest(BaseModel):
-    topic: str
-    duration: str
-    email_content: Optional[str] = None
 
 @app.get("/health")
 async def health_check():
